@@ -110,7 +110,7 @@ for:			beqz $t0 finFor		#iteramos sobre el numero de elementos que hay en la lis
 			li $a2 4 
 			beq $t3 $v0 errorW
 			
-			la $a1 cadena3		#escribimos ‘: ’ en el fichero
+			la $a1 cadena3		#escribimos ": " en el fichero
 			li $a2 2
 			syscall
 			beq $t3 $v0 errorW
@@ -134,7 +134,7 @@ for:			beqz $t0 finFor		#iteramos sobre el numero de elementos que hay en la lis
 			mtc1 $s1 $f1 
 			div.s $f2 $f0 $f1 	#calculamos la media						$f2 media
 			
-			sw $f2 bufferNumero
+			s.s $f2 bufferNumero
 			la $a1 bufferNumero
 			li $a2 4 
 			beq $t3 $v0 errorW
@@ -212,7 +212,7 @@ igual:			addi $t0 $t0 4		#voy al contador del indice
 			addi $t4 $t4 1
 			sw $t4 ($t0)
 			
-			li $v0 			#guardo 0 en v0 porque no hay que cambiar la cabecera
+			li $v0 0		#guardo 0 en v0 porque no hay que cambiar la cabecera
 			b finFunc
 
 crear:			addi $t0 $sp 8		#si ha llegado hasta aqui no existe esa etiqueta
