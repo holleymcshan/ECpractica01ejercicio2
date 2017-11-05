@@ -4,238 +4,264 @@ ficheroSalida: .asciiz "c:\users\ficheroS.txt"
 buffer:			.space 1
 eError:			.asciiz "Error al abrir el fichero de entrada"
 sError:			.asciiz "Error al crear el fichero de salida"
+rError:			.asciiz "Error al leer en el fichero"
 wError:			.asciiz "Error al escribir en el fichero"
-error_vacio:		.asciiz "Fichero Vacio"
+error_vacio:	.asciiz "Fichero Vacio"
 cadena1:		.asciiz "Longitud "
 cadena2:		.asciiz "Longitud media: "
 cadena3:		.asciiz ": "
-bufferNumero:		.space 4
+				.align 1
+bufferNumero:	.space 4
 
-			.text
-				.globl main
-				
-main:			la $a0 ficheroEntrada	#abrimos el fichero
-			li $a1 0x0
-			li $v0 13
-			syscall
-			li $t0 -1
-			beq $v0 $t0 error
-			
-			move $s0 $v0		#copiamos el descriptor del ficheroEntrada	$s0 descriptor del archivo
-
-			addi $sp $sp -8 	#inicio la lista
-			sw $0 ($sp)
-		
-				
-bucle:			move $a0 $s0		#lee 1 caracter
-			la $a1 buffer
-			li $a2 1
-			li $v0 14
-			syscall
-			
-			beqz $v0 vacio		#si ha terminado el archivo terminamos el programa
-				
-			lb $t0 buffer		#comprobamos si es un espacio o un salto de linea	 $t0 caracter en buffer
-				
-			li $t1 0x13
-			beq $t1 $t0 bucle
-			li $t1 0x20
-			beq $t1 $t0 bucle
-
-			move $a0 $t0		#si no lo es seguimos, pasamos el caracter leido como parametro
-				
-			addi $sp $sp -8		#guardamos en la pila el $ra y el $fp
-			sw $ra 4($sp)
-			sw $fp ($sp)
+				.text
+					.globl main
 					
-			jal longitud		#llamamos a la funcion
+main:				la $a0 ficheroEntrada		#abrimos el fichero
+				li $a1 0x0
+				li $v0 13
+				syscall
+				li $t0 -1
 				
-			lw $fp ($sp)		#recuperamos el $fp y el $ra
-			lw $ra 4($sp)
-			addi $sp $sp 8
-			
-			move $a0 $v1		#pasamos la longitud como parametro
-			
-			addi $sp $sp -8		#guardamos en la pila el $ra y el $fp
-			sw $ra 4($sp)
-			sw $fp ($sp)
-			
-			jal guardarEnLista
-			
-			lw $fp ($sp)		#recuperamos el $fp y el $ra
-			lw $ra 4($sp)
-			addi $sp $sp 8
-
-			beqz $v0 cont		#si hay que crear cabezera la creo
-			addi $sp $sp -8
-			sw $v1 ($sp)
+				beq $v0 $t0 eError		#Si ha fallado al abrir el archivo sacamos mensaje de error
 				
-			bnez $v0 bucle		#comprobamos si en el subprograma o en el descarte de espacios ha llegado al final
-			
-			move $a0 $s0		#cerramos el archivo y terminamos el programa
-			li $v0 16
-			syscall		
-			
-			la $a0 ficheroSalida	#Creamos el fichero de salida para solo escritura
-			li $a1 0x601
-			li $a2 0x1ff
-			li $v0 13
-			syscall
-			li $t0 -1		#Comprobamos si ha dado error al crearlo
-			beq $t0 $v0 errorS
-			
-			move $s0 $v0										#s0 descriptor
-			
-			lw $t0($sp)										#t0 longitud de lista
-			move $s1 $t0
-			addi $sp $sp 8		#apuntamos al primer elemento
-			li $t4 0										#$t4 el total
+				move $s0 $v0			#copiamos el descriptor del ficheroEntrada				$s0 descriptor del archivo
 
-for:			beqz $t0 finFor		#iteramos sobre el numero de elementos que hay en la lista
+				addi $sp $sp -8 		#inicio la lista
+				sw $0 ($sp)
 			
-			lw $t1 ($sp)										#t1 indice
-			lw $t2 4($sp)										#t2 elementos
-			mul $t3 $t1 $t2
-			add $t4 $t4 $t3		#sumamos a t4 el numero de elementos por la longitud del elemento
-			
-			move $a0 $s0		#escribimos longitud en el fichero 
-			la $a1 cadena1
-			li $a2 9
-			syscall
-			li $t3 -1										#t3 valor temporal
-			beq $t3 $v0 errorW	#confirmamos que no hay error
-			
-			sw $t1 bufferNumero	#escribimos el indice en el fichero
-			la $a1 bufferNumero
-			li $a2 4 
-			beq $t3 $v0 errorW
-			
-			la $a1 cadena3		#escribimos ": " en el fichero
-			li $a2 2
-			syscall
-			beq $t3 $v0 errorW
-
-			sw $t2 bufferNumero	#escribimos el numero de veces que aparece	
-			la $a1 bufferNumero
-			li $a2 4 
-			beq $t3 $v0 errorW
-
-			addi $sp $sp 8		#eliminamos el ultimo elemento de la lista
-			addi $t0 -1		#restamos uno a la longitud de la lista
-			
-			b for
-
-			la $a1 cadena2		
-			li $a2 16
-			syscall
-			beq $t3 $v0 errorW
-
-			mtc1 $t4 $f0 
-			mtc1 $s1 $f1 
-			div.s $f2 $f0 $f1 	#calculamos la media						$f2 media
-			
-			s.s $f2 bufferNumero
-			la $a1 bufferNumero
-			li $a2 4 
-			beq $t3 $v0 errorW
-
-						#write to file***************************************************************
-						#close file******************************************************************	
-
-			li $v0 16		#Cerramos el fichero
-			syscall		
-			b finPrograma
+bucle:				move $a0 $s0			#lee 1 caracter
+				la $a1 buffer
+				li $a2 1
+				li $v0 14
+				syscall
 				
-error:			la $a0 	eError		#sacamos por pantalla el mensaje de error
-			li $v0 4
-			syscall
-			li $v0 10
-			syscall
-
-
-errorS:			la $a0 	sError		#sacamos por pantalla el mensaje de error
-			li $v0 4
-			syscall
-			li $v0 10
-			syscall
-
-errorW:			la $a0 	wError		#sacamos por pantalla el mensaje de error
-			li $v0 4
-			syscall
-			li $v0 10
-			syscall
+				beqz $v0 eof			#si ha llegado al final del archivo cerramos el archivo y terminamos
 				
-longitud:		li $v1 1		#nuestra funcion 	#iniciamos variables	#contador de longitud de la palabra
-				
-bucleChar:		move $a0 $s0		#leemos un caracter
-			la $a1 buffer
-			li $a2 1
-			li $v0 14
-			syscall
-			
-			beqz $v0 fin		#si ha llegado al final del archivo terminamos la funcion
-			lb $t1 buffer		#guardamos el caracter leido		#$t1 caracter leido del archivo
-			
-			li $t3 0x13		#si el ultimo caracter leido es un espacio o un enter salimos de bucle
-			beq $t1 $t3 fin
-			li $t3 0x20
-			beq $t1 $t3 fin
+				li $t0 -1			#Si da error al leer sacamos mensaje de error
+				beq $v0 $t0 errorR
+					
+				lb $t0 buffer			#comprobamos si es un espacio o un salto de linea	 	$t0 caracter en buffer
+					
+				li $t1 0xa
+				beq $t1 $t0 bucle
+				li $t1 0x20
+				beq $t1 $t0 bucle
+
+				move $a0 $t0			#si no lo es seguimos, pasamos el caracter leido como parametro
+					
+				addi $sp $sp -8			#guardamos en la pila el $ra y el $fp
+				sw $ra 4($sp)
+				sw $fp ($sp)
 						
-			addi $v1 $v1 1		#incrementamos contador de longitud de palabra
-			b bucleChar
-
-
-fin:			move $a0 $v1
-			li $v0 1
-			syscall
-			jr $ra
-		
-guardarEnLista:		addi $t0 $sp 8		#apunto a la cabecera de la lista		t0 puntero auxiliar
-
-		
-			lw $t1 ($t0)		#guardo la longitud de la lista			t1 longitud del array
-			move $t2 $t1								#t2 contador
-		
-		
-bucle2:			beqz $t2 crear
-		
-
-			addi $t0 $t0 8		#salto al siguiente indice
-			lw $t3 ($t0)		#guardo el valor del indice			t3 valor del indice actual
-			beq $a0 $t3 igual	#comparo si es igual
-			addi $t2 $t2 -1		#cambio en 1 el contador
-			b bucle2
-
-igual:			addi $t0 $t0 4		#voy al contador del indice
-
-			lw $t4 ($t0)
-			addi $t4 $t4 1
-			sw $t4 ($t0)
+				jal longitud			#llamamos a la funcion
+					
+				lw $fp ($sp)			#recuperamos el $fp y el $ra
+				lw $ra 4($sp)
+				addi $sp $sp 8
+				
+				move $a0 $v1			#pasamos la longitud como parametro
 			
-			li $v0 0		#guardo 0 en v0 porque no hay que cambiar la cabecera
-			b finFunc
+				addi $sp $sp -8			#guardamos en la pila el $ra y el $fp
+				sw $ra 4($sp)
+				sw $fp ($sp)
+				
+				jal guardarEnLista
+				
+				lw $fp ($sp)			#recuperamos el $fp y el $ra
+				lw $ra 4($sp)
+				addi $sp $sp 8
 
-crear:			addi $t0 $sp 8		#si ha llegado hasta aqui no existe esa etiqueta
-			sw $a0 ($t0)		#reinicio a la cima de la lista y pongo el indice y 1 a su contador
-			addi $t0 $t0 4
-			li $t4 1
-			sw $t4 ($t0)
-		
-			li $v0 1		#guardo 1 en v0 porque hay que crear la cabecera
-			addi $v1 $t1 1		#guardo en v1 la longitud nueva del array
-			b finFunc
-		
-finFunc:		jr $ra
+				beqz $v0 noCrear		#si hay que crear cabezera la creo
+				addi $sp $sp -8
+				sw $v1 ($sp)
+				
+noCrear:			b bucle	
+								
+eof:				move $a0 $s0			#cerramos el archivo y terminamos el programa
+				li $v0 16
+				syscall
+				
+				la $a0 ficheroSalida		#Creamos el fichero de salida para solo escritura
+				li $a1 0x301
+				li $a2 0x1ff
+				li $v0 13
+				syscall
+				
+				
+				li $t0 -1			#Comprobamos si ha dado error al crearlo
+				beq $t0 $v0 errorS
+				
+				move $s0 $v0																	#s0 descriptor
+				
+				lw $s1($sp)																		#s1 longitud de lista
+				move $t0 $s1																	#t0 longitud de lista auxiliar
+				addi $sp $sp 8			#apuntamos al primer elemento
+				li $t4 0																		#$t4 el total
 
-vacio:			li $v0 4
-			la $a0 error_vacio
-			syscall 
-			li $v0 10
-			syscall				
+for:				beqz $t0 finFor			#iteramos sobre el numero de elementos que hay en la lista
+				
+				lw $t1 ($sp)																	#t1 indice
+				lw $t2 4($sp)																	#t2 elementos
+				mul $t3 $t1 $t2
+				add $t4 $t4 $t3			#sumamos a t4 el numero de elementos por la longitud del elemento
+				
+				move $a0 $s0			#escribimos longitud en el fichero 
+				la $a1 cadena1
+				li $a2 9
+				li $v0 15
+				syscall
+				li $t3 -1																		#t3 valor temporal
+				beq $t3 $v0 errorW		#confirmamos que no hay error
+				
+				sw $t1 bufferNumero		#escribimos el indice en el fichero
+				la $a1 bufferNumero
+				li $a2 4
+				li $v0 15
+				syscall
+				beq $t3 $v0 errorW		#confirmamos que no hay error
+					
+				la $a1 cadena3			#escribimos ": " en el fichero
+				li $a2 2
+				li $v0 15
+				syscall
+				beq $t3 $v0 errorW		#confirmamos que no hay error
+	
+				sw $t2 bufferNumero		#escribimos el numero de veces que aparece	
+				la $a1 bufferNumero
+				li $a2 4 
+				li $v0 15
+				syscall
+				beq $t3 $v0 errorW		#confirmamos que no hay error
 
-finPrograma:	        li $v0 1
-			move $a0 $s1
-			syscall
-			li $v0 10
-			syscall
+				addi $sp $sp 8			#eliminamos el ultimo elemento de la lista
+				addi $t0 -1			#restamos uno a la longitud de la lista
+				
+				
+				beq $t3 $v0 errorW		#confirmamos que no hay error
+				
+				li $t3 0xa			#escribimos '\n' en el archivo
+				sb $t3 bufferNumero		
+				la $a1 bufferNumero
+				li $a2 1
+				li $v0 15
+				syscall
+				beq $t3 $v0 errorW		#confirmamos que no hay error
+				
+				b for
+
+finFor:				li $t3 0xa			#escribimos '\n' en el archivo
+				sb $t3 bufferNumero		
+				la $a1 bufferNumero
+				li $a2 1
+				li $v0 15
+				syscall
+				beq $t3 $v0 errorW		#confirmamos que no hay error
+
+				la $a1 cadena2			#escribimos "Longitud Media: " en el archivo
+				li $a2 16
+				li $v0 15
+				syscall
+				beq $t3 $v0 errorW		#confirmamos que no hay error
+
+				mtc1 $t4 $f0 
+				mtc1 $s1 $f1 	
+				div.s $f2 $f0 $f1 		#calculamos la media									 $f2 media
+				
+				s.s $f2 bufferNumero		#escribimos la media en el archivo
+				la $a1 bufferNumero
+				li $a2 4 
+				li $v0 15
+				syscall
+				
+				beq $t3 $v0 errorW		#confirmamos que no hay error
+
+
+				li $v0 16			#Cerramos el fichero
+				syscall		
+				b finPrograma
+				
+				b finPrograma				
+
+errorE:				la $a0 	eError			#sacamos por pantalla el mensaje de error
+				li $v0 4
+				syscall
+				b finPrograma
+				
+errorR:				la $a0 	rError			#sacamos por pantalla el mensaje de error
+				li $v0 4
+				syscall
+				b finPrograma
+
+errorS:				la $a0 	sError			#sacamos por pantalla el mensaje de error
+				li $v0 4
+				syscall
+				b finPrograma
+
+errorW:				la $a0 	wError			#sacamos por pantalla el mensaje de error
+				li $v0 4
+				syscall
+				b finPrograma
+				
+vacio:				li $v0 4
+				la $a0 error_vacio
+				syscall 
+				b finPrograma				
+
+finPrograma:	        
+				li $v0 10
+				syscall
+				
+longitud:			li $v1 1			#iniciamos variables	v1 contador de longitud de la palabra
+				
+bucleChar:			move $a0 $s0			#leemos un caracter
+				la $a1 buffer
+				li $a2 1
+				li $v0 14
+				syscall
+				
+				beqz $v0 finLong		#si ha llegado al final del archivo terminamos la funcion
+				lb $t1 buffer			#guardamos el caracter leido		#$t1 caracter leido del archivo
+				
+				li $t3 0xa			#si el ultimo caracter leido es un espacio o un enter salimos de bucle
+				beq $t1 $t3 finLong
+				li $t3 0x20
+				beq $t1 $t3 finLong
+							
+				addi $v1 $v1 1			#incrementamos contador de longitud de palabra
+				b bucleChar
+
+finLong:			jr $ra
+
+guardarEnLista: 		addi $t0 $sp 8			#apunto a la cavecera de la lista						t0 puntero auxiliar
+				
+				lw $t1 ($t0)			#guardo la longitud de la lista							t1 longitud de la lista
+				move $t2 $t1			#														t2 contador
+				
+comprobar:			beqz $t2 crear			#si t0 es 0 quiere decir que el indice no existe asi que lo creo
+					
+				addi $t0 $t0 8			#salto al siguiente indice
+				lw $t3 ($t0)			#guardo el valor del indice								t3 valor del indice actual
+				beq $a0 $t3 igual		#si es igual quiere decir que ya existe asi que le anado uno al contador del indice
+				addi $t2 $t2 -1			#cambio en 1 el contador
+				b comprobar
+
+igual:				addi $t0 $t0 4			#voy al contador del indice
+
+				lw $t4 ($t0)			#anado uno al contador del indice
+				addi $t4 $t4 1			
+				sw $t4 ($t0)
+				
+				li $v0 0			#guardo 0 en v0 porque no hay que cambiar la cabecera
+				b finLista
+
+crear:				addi $t0 $sp 8			#si ha llegado hasta aqui no existe esa etiqueta
+				sw $a0 ($t0)			#reinicio a la cima de la lista y pongo el indice y 1 a su contador
+				addi $t0 $t0 4	
+				li $t4 1
+				sw $t4 ($t0)
+			
+				li $v0 1			#guardo 1 en v0 porque hay que crear la cabecera
+				addi $v1 $t1 1			#guardo en v1 la longitud nueva del array
+			
+finLista:			jr $ra	
 
