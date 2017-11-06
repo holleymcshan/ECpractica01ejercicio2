@@ -1,25 +1,25 @@
 				.data
-ficheroEntrada: .asciiz "/Users/hmcshan/Desktop/tester.txt" 
-ficheroSalida: .asciiz "c:\users\ficheroS.txt"
+ficheroEntrada: 	.asciiz "/Users/hmcshan/Desktop/tester.txt" 
+ficheroSalida: 		.asciiz "c:\users\ficheroS.txt"
 buffer:			.space 1
 eError:			.asciiz "Error al abrir el fichero de entrada"
 sError:			.asciiz "Error al crear el fichero de salida"
 rError:			.asciiz "Error al leer en el fichero"
 wError:			.asciiz "Error al escribir en el fichero"
-error_vacio:	.asciiz "Fichero Vacio"
+error_vacio:		.asciiz "Fichero Vacio"
 cadena1:		.asciiz "Longitud "
 cadena2:		.asciiz "Longitud media: "
 cadena3:		.asciiz ": "
 saltoLinea:		.byte 0xa		# \n
 punto:			.byte 0x2e
-				.align 2
-bufferNumero:	.space 4		#la maxima longitud de la palabra son 256 bytes, es decir el numero maximo puede tener 3 bytes de longitud
-								#pero uso 4 para mantenerlo alineado y que sea mas facil limpiarlo. El ultimo byte estaria siempre vacio
+			.align 2
+bufferNumero:		.space 4		#la maxima longitud de la palabra son 256 bytes, es decir el numero maximo puede tener 3 bytes de longitud
+						#pero uso 4 para mantenerlo alineado y que sea mas facil limpiarlo. El ultimo byte estaria siempre vacio
 
 				.text
-					.globl main
+			.globl main
 					
-main:			la $a0 ficheroEntrada	#abrimos el fichero
+main:				la $a0 ficheroEntrada	#abrimos el fichero
 				li $a1 0x0
 				li $v0 13
 				syscall
@@ -32,7 +32,7 @@ main:			la $a0 ficheroEntrada	#abrimos el fichero
 				addi $sp $sp -8 		#inicio la lista
 				sw $0 ($sp)
 			
-bucle:			move $a0 $s0			#lee 1 caracter
+bucle:				move $a0 $s0			#lee 1 caracter
 				la $a1 buffer
 				li $a2 1
 				li $v0 14
@@ -40,7 +40,7 @@ bucle:			move $a0 $s0			#lee 1 caracter
 				
 				beqz $v0 eof			#si ha llegado al final del archivo cerramos el archivo y terminamos
 				
-				li $t0 -1				#Si da error al leer sacamos mensaje de error
+				li $t0 -1			#Si da error al leer sacamos mensaje de error
 				beq $v0 $t0 errorR
 					
 				lb $t0 buffer			#comprobamos si es un espacio o un salto de linea	 	$t0 caracter en buffer
@@ -78,20 +78,20 @@ bucle:			move $a0 $s0			#lee 1 caracter
 				addi $sp $sp -8
 				sw $v1 ($sp)
 				
-noCrear:		b bucle	
+noCrear:			b bucle	
 								
-eof:			move $a0 $s0			#cerramos el archivo y terminamos el programa
+eof:				move $a0 $s0			#cerramos el archivo y terminamos el programa
 				li $v0 16
 				syscall
 				
-				la $a0 ficheroSalida	#Creamos el fichero de salida para solo escritura
+				la $a0 ficheroSalida		#Creamos el fichero de salida para solo escritura
 				li $a1 0x301
 				li $a2 0x1ff
 				li $v0 13
 				syscall
 				
 				
-				li $t0 -1				#Comprobamos si ha dado error al crearlo
+				li $t0 -1			#Comprobamos si ha dado error al crearlo
 				beq $t0 $v0 errorS
 				
 				move $s0 $v0																	#s0 descriptor
@@ -102,7 +102,7 @@ eof:			move $a0 $s0			#cerramos el archivo y terminamos el programa
 				li $s3 0																		#$s3 el total de caracteres
 				li $s4 0																		#$s4 total de palabras
 
-for:			beqz $s2 finFor			#iteramos sobre el numero de elementos que hay en la lista
+for:				beqz $s2 finFor			#iteramos sobre el numero de elementos que hay en la lista
 				
 				lw $s5 ($sp)																	#s5 indice
 				lw $s6 4($sp)																	#s6 elementos
@@ -178,7 +178,7 @@ for:			beqz $s2 finFor			#iteramos sobre el numero de elementos que hay en la li
 				
 				b for
 
-finFor:			la $a1 saltoLinea		#escribimos un '\n' adicional antes de la media en el archivo
+finFor:				la $a1 saltoLinea		#escribimos un '\n' adicional antes de la media en el archivo
 				li $a2 1
 				li $v0 15
 				syscall
@@ -259,27 +259,27 @@ finFor:			la $a1 saltoLinea		#escribimos un '\n' adicional antes de la media en 
 				
 				b finPrograma				
 
-errorE:			la $a0 	eError			#sacamos por pantalla el mensaje de error
+errorE:				la $a0 	eError			#sacamos por pantalla el mensaje de error
 				li $v0 4
 				syscall
 				b finPrograma
 				
-errorR:			la $a0 	rError			#sacamos por pantalla el mensaje de error
+errorR:				la $a0 	rError			#sacamos por pantalla el mensaje de error
 				li $v0 4
 				syscall
 				b finPrograma
 
-errorS:			la $a0 	sError			#sacamos por pantalla el mensaje de error
+errorS:				la $a0 	sError			#sacamos por pantalla el mensaje de error
 				li $v0 4
 				syscall
 				b finPrograma
 
-errorW:			la $a0 	wError			#sacamos por pantalla el mensaje de error
+errorW:				la $a0 	wError			#sacamos por pantalla el mensaje de error
 				li $v0 4
 				syscall
 				b finPrograma
 				
-vacio:			li $v0 4
+vacio:				li $v0 4
 				la $a0 error_vacio
 				syscall 
 				b finPrograma				
@@ -288,9 +288,9 @@ finPrograma:
 				li $v0 10
 				syscall
 				
-longitud:		li $v1 1				#iniciamos variables	v1 contador de longitud de la palabra
+longitud:			li $v1 1			#iniciamos variables	v1 contador de longitud de la palabra
 				
-bucleChar:		move $a0 $s0			#leemos un caracter
+bucleChar:			move $a0 $s0			#leemos un caracter
 				la $a1 buffer
 				li $a2 1
 				li $v0 14
@@ -299,7 +299,7 @@ bucleChar:		move $a0 $s0			#leemos un caracter
 				beqz $v0 finLong		#si ha llegado al final del archivo terminamos la funcion
 				lb $t1 buffer			#guardamos el caracter leido		#$t1 caracter leido del archivo
 				
-				li $t3 0xa				#si el ultimo caracter leido es un espacio o un enter salimos de bucle
+				li $t3 0xa			#si el ultimo caracter leido es un espacio o un enter salimos de bucle
 				beq $t1 $t3 finLong
 				li $t3 0x20
 				beq $t1 $t3 finLong
@@ -307,14 +307,14 @@ bucleChar:		move $a0 $s0			#leemos un caracter
 				addi $v1 $v1 1			#incrementamos contador de longitud de palabra
 				b bucleChar
 
-finLong:		jr $ra
+finLong:			jr $ra
 
-guardarEnLista: addi $t0 $sp 8			#apunto a la cavecera de la lista						t0 puntero auxiliar
+guardarEnLista: 		addi $t0 $sp 8			#apunto a la cavecera de la lista						t0 puntero auxiliar
 				
 				lw $t1 ($t0)			#guardo la longitud de la lista							t1 longitud de la lista
 				move $t2 $t1			#														t2 contador
 				
-comprobar:		beqz $t2 crear			#si t0 es 0 quiere decir que el indice no existe asi que lo creo
+comprobar:			beqz $t2 crear			#si t0 es 0 quiere decir que el indice no existe asi que lo creo
 					
 				addi $t0 $t0 8			#salto al siguiente indice
 				lw $t3 ($t0)			#guardo el valor del indice								t3 valor del indice actual
@@ -322,39 +322,39 @@ comprobar:		beqz $t2 crear			#si t0 es 0 quiere decir que el indice no existe as
 				addi $t2 $t2 -1			#cambio en 1 el contador
 				b comprobar
 
-igual:			addi $t0 $t0 4			#voy al contador del indice
+igual:				addi $t0 $t0 4			#voy al contador del indice
 
 				lw $t4 ($t0)			#anado uno al contador del indice
 				addi $t4 $t4 1			
 				sw $t4 ($t0)
 				
-				li $v0 0				#guardo 0 en v0 porque no hay que cambiar la cabecera
+				li $v0 0			#guardo 0 en v0 porque no hay que cambiar la cabecera
 				b finLista
 
-crear:			addi $t0 $sp 8			#si ha llegado hasta aqui no existe esa etiqueta
+crear:				addi $t0 $sp 8			#si ha llegado hasta aqui no existe esa etiqueta
 				sw $a0 ($t0)			#reinicio a la cima de la lista y pongo el indice y 1 a su contador
 				addi $t0 $t0 4	
 				li $t4 1
 				sw $t4 ($t0)
 			
-				li $v0 1				#guardo 1 en v0 porque hay que crear la cabecera
+				li $v0 1			#guardo 1 en v0 porque hay que crear la cabecera
 				addi $v1 $t1 1			#guardo en v1 la longitud nueva del array
 			
-finLista:		jr $ra	
+finLista:			jr $ra	
 
-intToAscii:								#guarda en bufferNumero el equivalente a ascii de a0 y devuelve en v0 la longitud por la que empezar a leerlo
+intToAscii:							#guarda en bufferNumero el equivalente a ascii de a0 y devuelve en v0 la longitud por la que empezar a leerlo
 				sw $0 bufferNumero		#pongo el buffer a 0
-				li $t0 10				#t0 10
-				li $v0 3					#contador de digito, empiezamos con el maximo porque va de derecha a izquierda
+				li $t0 10			#t0 10
+				li $v0 3			#contador de digito, empiezamos con el maximo porque va de derecha a izquierda
 				
-leerDigito:		addi $v0 -1				#resto uno al contador (el primero se almacenaria en la tercera posicion)
+leerDigito:			addi $v0 -1			#resto uno al contador (el primero se almacenaria en la tercera posicion)
 				rem $t1 $a0 $t0			#t1 = a0%10		t1 caracter
 				div $a0 $a0 $t0			#a0 = a0/10
-				addi $t1 48				#paso el caracter a ascii
-				sb $t1 bufferNumero($v0) #guardo el caracter en el buffer
+				addi $t1 48			#paso el caracter a ascii
+				sb $t1 bufferNumero($v0) 	#guardo el caracter en el buffer
 				bnez $a0 leerDigito		#si $a0 no es 0 quedan mas caracteres
 				
 				li $t0 3
 				sub $v1 $t0 $v0			#guardo en v1 los bytes que ocupa
 				
-				jr $ra					#termino la funcion
+				jr $ra				#termino la funcion
