@@ -322,13 +322,13 @@ guardarEnLista: 		addi $t0 $sp 8			#apunto a la cavecera de la lista						t0 pun
 				lw $t1 ($t0)			#guardo la longitud de la lista							t1 longitud de la lista
 				move $t2 $t1			#														t2 contador
 				
-comprobar:			beqz $t2 crear			#si t0 es 0 quiere decir que el indice no existe asi que lo creo
+comprobarLista:			beqz $t2 crear			#si t0 es 0 quiere decir que el indice no existe asi que lo creo
 					
 				addi $t0 $t0 8			#salto al siguiente indice
 				lw $t3 ($t0)			#guardo el valor del indice								t3 valor del indice actual
 				beq $a0 $t3 igual		#si es igual quiere decir que ya existe asi que le anado uno al contador del indice
 				addi $t2 $t2 -1			#cambio en 1 el contador
-				b comprobar
+				b comprobarLista
 
 igual:				addi $t0 $t0 4			#voy al contador del indice
 
