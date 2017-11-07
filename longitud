@@ -27,10 +27,18 @@ main:				la $a0 ficheroEntrada	#abrimos el fichero
 				
 				beq $v0 $t0 eError		#Si ha fallado al abrir el archivo sacamos mensaje de error
 				
-				move $s0 $v0			#copiamos el descriptor del ficheroEntrada				$s0 descriptor del archivo
+				move $s0 $v0			#copiamos el descriptor del ficheroEntrada			$s0 descriptor del archivo
 
 				addi $sp $sp -8 		#inicio la lista
 				sw $0 ($sp)
+				move $a0 $s0			#lee 1 caracter
+				la $a1 buffer
+				li $a2 1
+				li $v0 14
+				syscall
+				
+				beqz $v0 vacio			#si es el final, el fichero esta vacio
+				b comprobar			#si no esta vacio, iniciamoes el bucle despues de leer un caracter
 			
 bucle:				move $a0 $s0			#lee 1 caracter
 				la $a1 buffer
@@ -43,7 +51,7 @@ bucle:				move $a0 $s0			#lee 1 caracter
 				li $t0 -1			#Si da error al leer sacamos mensaje de error
 				beq $v0 $t0 errorR
 					
-				lb $t0 buffer			#comprobamos si es un espacio o un salto de linea	 	$t0 caracter en buffer
+comprobar:			lb $t0 buffer			#comprobamos si es un espacio o un salto de linea	 	$t0 caracter en buffer
 					
 				li $t1 0xa
 				beq $t1 $t0 bucle
