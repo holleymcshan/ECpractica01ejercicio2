@@ -186,13 +186,18 @@ for:				beqz $s2 finFor			#iteramos sobre el numero de elementos que hay en la l
 				
 				b for
 
-finFor:				la $a1 saltoLinea		#escribimos un '\n' adicional antes de la media en el archivo
+finFor:				move $a0 $s0			#ponemos el descriptor del fichero
+				la $a1 saltoLinea		#escribimos un '\n' adicional antes de la media en el archivo
 				li $a2 1
 				li $v0 15
 				syscall
 				beq $t3 $v0 errorW		#confirmamos que no hay error
-
-				la $a1 cadena2			#escribimos "Longitud Media: " en el archivo
+				
+				bnez $s4 noDivCero		#si s4 es cero lo ponemos a 1 para evitar dividir entre 0
+				li $s4 1
+				
+				
+noDivCero:			la $a1 cadena2			#escribimos "Longitud Media: " en el archivo
 				li $a2 16
 				li $v0 15
 				syscall
