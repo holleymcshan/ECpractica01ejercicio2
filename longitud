@@ -10,16 +10,34 @@ error_vacio:		.asciiz "Fichero Vacio"
 cadena1:		.asciiz "Longitud "
 cadena2:		.asciiz "Longitud media: "
 cadena3:		.asciiz ": "
-saltoLinea:		.byte 0xa		# \n
-punto:			.byte 0x2e
+saltoLinea:		.byte 0xa				# '\n'
+punto:			.byte 0x2e				# '.'
 			.align 2
-bufferNumero:		.space 3		#la maxima longitud de la palabra son 256 bytes, es decir el numero maximo puede tener 3 bytes de longitud
+bufferNumero:		.space 3				#la maxima longitud de la palabra son 256 bytes, es decir el numero maximo puede tener 3 bytes de longitud
 
 				.text
 			.globl main
 					
-main:				la $a0 ficheroEntrada	#abrimos el fichero
-				li $a1 0x0
+main:				la $a0 ficheroEntrada
+				la $a1 ficheroSalida
+				
+				addi $sp $sp -8			#guardamos en la pila el $ra y el $fp
+				sw $ra 4($sp)
+				sw $fp ($sp)
+					
+				jal ejercicio2			#llamamos a la funcion
+					
+				lw $fp ($sp)			#recuperamos el $fp y el $ra
+				lw $ra 4($sp)
+				addi $sp $sp 8
+				
+				li $v0 10			#terminamos el programa
+				syscall
+				
+				
+				
+ejercicio2:			move $s2 $a1			#s2 direccion de memoria de fichero de salida
+				li $a1 0x0			#abrimos el fichero
 				li $v0 13
 				syscall
 				li $t0 -1
@@ -133,7 +151,7 @@ finForSort2:			addi $t0 1			#sumo uno al contador del primer for
 
 				b forSort1
 				
-finForSort1:			la $a0 ficheroSalida		#Creamos el fichero de salida para solo escritura
+finForSort1:			move $a0 $s2			#Creamos el fichero de salida para solo escritura
 				li $a1 0x301
 				li $a2 0x1ff
 				li $v0 13
@@ -308,7 +326,6 @@ noDivCero:			la $a1 cadena2			#escribimos "Longitud Media: " en el archivo
 
 				li $v0 16				#Cerramos el fichero
 				syscall		
-				b finPrograma
 				
 				b finPrograma				
 
@@ -337,9 +354,7 @@ vacio:				li $v0 4
 				syscall 
 				b finPrograma				
 
-finPrograma:	        
-				li $v0 10
-				syscall
+finPrograma:	        	jr $ra
 				
 longitud:			li $v1 1			#iniciamos variables	v1 contador de longitud de la palabra
 				
