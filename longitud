@@ -13,8 +13,7 @@ cadena3:		.asciiz ": "
 saltoLinea:		.byte 0xa		# \n
 punto:			.byte 0x2e
 			.align 2
-bufferNumero:		.space 4		#la maxima longitud de la palabra son 256 bytes, es decir el numero maximo puede tener 3 bytes de longitud
-						#pero uso 4 para mantenerlo alineado y que sea mas facil limpiarlo. El ultimo byte estaria siempre vacio
+bufferNumero:		.space 3		#la maxima longitud de la palabra son 256 bytes, es decir el numero maximo puede tener 3 bytes de longitud
 
 				.text
 			.globl main
@@ -92,7 +91,49 @@ eof:				move $a0 $s0			#cerramos el archivo
 				li $v0 16
 				syscall
 				
-				la $a0 ficheroSalida		#Creamos el fichero de salida para solo escritura
+				#ordenamos la lista
+				li $t0 1																		#t0 contador primer for, empezamos en 1 para saltar la cabecera
+				lw $s1 ($sp)																	#s1 longitud de lista
+				li $t2 8			#cargamos en t2 el tamano de elemento en la lista	 t2 tamano de palabra
+				
+forSort1:			bgt $t0 $s1 finForSort1		#for t0 to s1
+				
+				addi $t1 $t0 1				#t1 = t0 + 1										 t1 contador segundo for
+				
+forSort2:			bgt $t1 $s1 finForSort2		#for t1 to s1
+
+				mul $t3 $t0 $t2			#guardo en t3 el desplazamiento del primer contador
+				mul $t4 $t1 $t2			#guardo en t4 el desplazamiento del segundo contador
+				
+				add $t3 $t3 $sp
+				add $t4 $t4 $sp
+				
+				lw $t5 ($t3)			#guardo en t5 el valor del la lista en la posicion t0
+				lw $t6 ($t4)			#guardo en t6 el valor del la lista en la posicion t1
+				
+				addi $t1 1			#sumo uno al contador del segundo for
+				
+				bge $t6 $t5 forSort2		#si el segundo valor es menor los intercambio
+				
+				sw $t6 ($t3)			#guardo t6 en la posicion t3
+				sw $t5 ($t4)			#guardo t5 en la posicion t4
+				
+				addi $t3 4			#apunto a la cantidad de apariciones relacionados con su indice
+				addi $t4 4
+				
+				lw $t5 ($t3)			#guardo en t5 el valor del la lista en la posicion t3
+				lw $t6 ($t4)			#guardo en t6 el valor del la lista en la posicion t4
+					
+				sw $t6 ($t3)			#guardo t6 en la posicion t3
+				sw $t5 ($t4)			#guardo t5 en la posicion t4
+				
+				b forSort2
+						
+finForSort2:			addi $t0 1			#sumo uno al contador del primer for
+
+				b forSort1
+				
+finForSort1:			la $a0 ficheroSalida		#Creamos el fichero de salida para solo escritura
 				li $a1 0x301
 				li $a2 0x1ff
 				li $v0 13
@@ -103,8 +144,7 @@ eof:				move $a0 $s0			#cerramos el archivo
 				beq $t0 $v0 errorS
 				
 				move $s0 $v0																	#s0 descriptor
-				
-				lw $s1($sp)																		#s1 longitud de lista
+							
 				move $s2 $s1																	#s2 longitud de lista auxiliar
 				addi $sp $sp 8			#apuntamos al primer elemento
 				li $s3 0																		#$s3 el total de caracteres
@@ -260,8 +300,8 @@ noDivCero:			la $a1 cadena2			#escribimos "Longitud Media: " en el archivo
 								
 				move $a0 $s0			#ponemos el descriptor del fichero
 				la $a1 bufferNumero		#escribimos el indice en ascii
-				add $a1 $a1 $v0			#le ponemos el desplazamiento que nos indica la funcion
-				move $a2 $v1			#le ponemos la longitud que indica la funcion
+										#sin desplazamiento por que quiero los ceros de la izquierda
+				li $a2 3				#queremos escribir 3 decimales
 				li $v0 15
 				syscall
 				beq $t3 $v0 errorW		#confirmamos que no hay error
@@ -356,7 +396,13 @@ crear:				addi $t0 $sp 8			#si ha llegado hasta aqui no existe esa etiqueta
 finLista:			jr $ra	
 
 intToAscii:							#guarda en bufferNumero el equivalente a ascii de a0 y devuelve en v0 la longitud por la que empezar a leerlo
-				sw $0 bufferNumero		#pongo el buffer a 0
+				li $t0 48
+				sb $t0 bufferNumero		#relleno el buffer de ceros en ascii
+				li $t1 1
+				sb $t0 bufferNumero($t1)
+				li $t1 1
+				sb $t0 bufferNumero($t1)
+				
 				li $t0 10			#t0 10
 				li $v0 3			#contador de digito, empiezamos con el maximo porque va de derecha a izquierda
 				
@@ -371,3 +417,4 @@ leerDigito:			addi $v0 -1			#resto uno al contador (el primero se almacenaria en
 				sub $v1 $t0 $v0			#guardo en v1 los bytes que ocupa
 				
 				jr $ra				#termino la funcion
+				
