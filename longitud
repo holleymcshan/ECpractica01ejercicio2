@@ -88,7 +88,7 @@ comprobar:			lb $t0 buffer			#comprobamos si es un espacio o un salto de linea	 
 				
 noCrear:			b bucle	
 								
-eof:				move $a0 $s0			#cerramos el archivo y terminamos el programa
+eof:				move $a0 $s0			#cerramos el archivo
 				li $v0 16
 				syscall
 				
